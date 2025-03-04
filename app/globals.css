@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 262 83.3% 57.8%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217.2 91.2% 59.8%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 262 83.3% 57.8% / 0.2;
+    --input: 240 3.7% 15.9%;
+    --ring: 262 83.3% 57.8%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.wallet-adapter-button-custom {
+  background-color: theme("colors.purple.600") !important;
+  color: white !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  height: 40px !important;
+  padding: 0 16px !important;
+  border-radius: 9999px !important;
+  transition: all 0.2s !important;
+}
+
+.wallet-adapter-button-custom:hover {
+  background-color: theme("colors.purple.700") !important;
+}
+
+.wallet-adapter-button-custom:not([disabled]):hover {
+  background-color: theme("colors.purple.700") !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background-color: theme("colors.black") !important;
+  border: 1px solid theme("colors.purple.500") !important;
+  border-radius: 16px !important;
+}
+
+.wallet-adapter-modal-button-close {
+  background-color: theme("colors.purple.600") !important;
+}
+
+.wallet-adapter-modal-button-close:hover {
+  background-color: theme("colors.purple.700") !important;
+}
+
+.wallet-adapter-modal-list-more {
+  color: theme("colors.purple.400") !important;
+}
+
+.wallet-adapter-modal-list-more:hover {
+  background-color: theme("colors.purple.900") !important;
+}
+
