@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default  {
+export default {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
@@ -51,6 +51,13 @@ export default  {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        purple: {
+          400: "#a78bfa",
+          500: "#8b5cf6",
+          600: "#7e5bef",
+          700: "#6b21a8",
+          900: "#4c1d95",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -79,5 +86,4 @@ export default  {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
-
+};
