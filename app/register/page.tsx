@@ -7,10 +7,16 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-black text-white flex flex-col">
       <Navbar />
       <main className="container mx-auto px-4 py-12 flex-grow">
-      <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-        Create Your SolMeet Account
-      </h1>
-      <RegisterForm />
+        <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+          Create Your SolMeet Account
+        </h1>
+        <RegisterForm />
+        <div className="text-center mt-4">
+          Already registered on SolMeet?{" "}
+          <a href="/login" className="text-blue-400 hover:underline">
+            Login
+          </a>
+        </div>
       </main>
       <Footer />
     </div>

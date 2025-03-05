@@ -29,7 +29,7 @@ export function Navbar() {
               >
                 Find Experts
               </Link>
-              <Link
+              {/* <Link
                 href="/how-it-works"
                 className="text-sm font-medium text-gray-300 hover:text-purple-400 transition-colors"
               >
@@ -43,7 +43,7 @@ export function Navbar() {
               </Link>
               <Link href="/about" className="text-sm font-medium text-gray-300 hover:text-purple-400 transition-colors">
                 About
-              </Link>
+              </Link> */}
             </nav>
           </div>
 
