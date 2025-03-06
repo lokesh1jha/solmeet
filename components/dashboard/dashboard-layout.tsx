@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Calendar, CreditCard, Home, LogOut, Menu, MessageSquare, Settings, User, X } from "lucide-react"
 import { ConnectWalletButton } from "@/components/connect-wallet-button"
+import { signOut } from "next-auth/react"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -90,6 +91,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-300 hover:bg-purple-900/20 hover:text-white"
+            onClick={() => signOut()}
           >
             <LogOut className="mr-3 h-5 w-5 text-purple-400" />
             Logout
