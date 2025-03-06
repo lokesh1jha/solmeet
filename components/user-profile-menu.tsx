@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useWallet } from "@/components/connect-wallet-button"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -12,9 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { User, Settings, History, LogOut, Wallet } from "lucide-react"
+import { useWallet } from "@solana/wallet-adapter-react"
 
 export function UserProfileMenu() {
-  const { isConnected, walletAddress } = useWallet()
+  const { connected, publicKey } = useWallet()
+  const walletAddress = publicKey?.toBase58()
 
   return (
     <DropdownMenu>
@@ -28,7 +29,7 @@ export function UserProfileMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-black/90 backdrop-blur-xl border border-purple-500/20">
-        {isConnected ? (
+        {connected ? (
           <>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">

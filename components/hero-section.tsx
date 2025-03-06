@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
-import { ConnectWalletButton } from "@/components/connect-wallet-button"
 import Link from "next/link"
+import { SolanaWalletButton } from "./solana-wallet-button"
 
 export function HeroSection() {
   return (
@@ -35,7 +35,13 @@ export function HeroSection() {
             >
               <Link href="/experts">Find an Expert</Link>
             </Button>
-            <ConnectWalletButton />
+            <Button
+              asChild
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none h-12 px-8 rounded-full"
+            >
+              <Link href="/register">Register as an Expert</Link>
+            </Button>
+            <SolanaWalletButton />
           </div>
         </div>
       </div>

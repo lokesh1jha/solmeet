@@ -6,8 +6,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Calendar, CreditCard, Home, LogOut, Menu, MessageSquare, Settings, User, X } from "lucide-react"
-import { ConnectWalletButton } from "@/components/connect-wallet-button"
 import { signOut } from "next-auth/react"
+import { SolanaWalletButton } from "../solana-wallet-button"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -107,7 +107,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </Button>
 
           <div className="ml-auto flex items-center space-x-4">
-            <ConnectWalletButton />
+            <SolanaWalletButton />
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
               <span className="font-medium text-white">JD</span>
             </div>

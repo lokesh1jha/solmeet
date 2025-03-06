@@ -5,8 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Star, AlertCircle } from "lucide-react"
-import { useWallet } from "@/components/connect-wallet-button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useWallet } from "@solana/wallet-adapter-react"
 
 // Sample experts data
 const experts = [
@@ -85,12 +85,12 @@ const experts = [
 ]
 
 export function ExpertsList() {
-  const { isConnected } = useWallet()
+  const { connected } = useWallet()
   const [walletDialogOpen, setWalletDialogOpen] = useState(false)
   const [selectedExpert, setSelectedExpert] = useState<(typeof experts)[0] | null>(null)
 
   const handleConnectClick = (expert: (typeof experts)[0]) => {
-    if (isConnected) {
+    if (connected) {
       // If wallet is connected, proceed to booking
       window.location.href = `/booking/${expert.id}`
     } else {
@@ -163,7 +163,7 @@ export function ExpertsList() {
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-none"
                   onClick={() => handleConnectClick(expert)}
                 >
-                  {isConnected ? "Book Session" : "Connect to Book"}
+                  {connected ? "Book Session" : "Connect to Book"}
                 </Button>
               </div>
             </CardContent>

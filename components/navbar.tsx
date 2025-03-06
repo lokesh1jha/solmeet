@@ -74,7 +74,7 @@ export function Navbar() {
             >
               Find Experts
             </Link>
-            <Link
+            {/* <Link
               href="/how-it-works"
               className="block text-base font-medium text-gray-300 hover:text-purple-400 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
@@ -94,7 +94,7 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               About
-            </Link>
+            </Link> */}
           </div>
         </div>
       )}

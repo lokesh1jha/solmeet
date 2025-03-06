@@ -1,15 +1,17 @@
 "use client"
 
-import { useWallet } from "@/components/connect-wallet-button"
+
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Clock, DollarSign, User } from "lucide-react"
+import { useWallet } from "@solana/wallet-adapter-react"
 
 export default function ProfilePage() {
-  const { isConnected, walletAddress } = useWallet()
+  const { connected, publicKey } = useWallet()
+  const walletAddress = publicKey?.toBase58()
 
   // Mock data for demonstration
   const userInfo = {
@@ -32,7 +34,7 @@ export default function ProfilePage() {
     { id: 3, date: "2023-10-05", amount: 0.45, description: "Session with Marcus Johnson" },
   ]
 
-  if (!isConnected) {
+  if (!connected) {
     return (
       <div className="min-h-screen bg-black text-white">
         <Navbar />
