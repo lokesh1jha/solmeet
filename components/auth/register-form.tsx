@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,10 +12,11 @@ import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function RegisterForm() {
-  const [username, setUsername] = useState("")
+  const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,11 +27,12 @@ export function RegisterForm() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, email }),
+        body: JSON.stringify({ name, password, email }),
       })
 
       if (response.ok) {
-        router.push("/login")
+        await signIn("credentials", { redirect: false, email, password })
+        router.push("/dashboard")
       } else {
         const data = await response.json()
         setError(data.error || "Registration failed")
@@ -51,9 +54,9 @@ export function RegisterForm() {
           <div>
             <Input
               type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
               className="bg-black/60 border-purple-500/20 focus:border-purple-400"
             />
@@ -68,15 +71,22 @@ export function RegisterForm() {
               className="bg-black/60 border-purple-500/20 focus:border-purple-400"
             />
           </div>
-          <div>
+          <div className="relative">
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="bg-black/60 border-purple-500/20 focus:border-purple-400"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
           </div>
           {error && (
             <Alert variant="destructive">
@@ -95,4 +105,3 @@ export function RegisterForm() {
     </Card>
   )
 }
-

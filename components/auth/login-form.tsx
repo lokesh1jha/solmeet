@@ -8,32 +8,32 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useSession, signIn } from "next-auth/react"
 
 export function LoginForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
     const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError("")
+        setLoading(true)
 
-        try {
-            const response = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            })
+        const result = await signIn("credentials", {
+            redirect: false,
+            email,
+            password,
+        })
 
-            if (response.ok) {
-                router.push("/dashboard")
-            } else {
-                const data = await response.json()
-                setError(data.error || "Login failed")
-            }
-        } catch (err) {
-            setError("An error occurred. Please try again.")
+        setLoading(false)
+
+        if (result?.error) {
+            setError(result.error)
+        } else {
+            router.push("/dashboard")
         }
     }
 
@@ -75,8 +75,9 @@ export function LoginForm() {
                     <Button
                         type="submit"
                         className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        disabled={loading}
                     >
-                        Login
+                        {loading ? "Loading..." : "Login"}
                     </Button>
                 </form>
             </CardContent>
