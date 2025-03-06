@@ -17,8 +17,6 @@ export async function GET() {
       where: { id: session.user.id },
       select: {
         name: true,
-        bio: true,
-        contactInfo: true,
         walletAddress: true,
       },
     })
@@ -48,8 +46,6 @@ export async function PUT(request: Request) {
       where: { id: session.user.id },
       data: {
         name,
-        bio,
-        contactInfo,
         walletAddress,
       },
     })

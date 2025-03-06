@@ -19,6 +19,8 @@ model User {
   email         String   @unique
   username      String   @unique
   password      String
+  bio           String?
+  walletAddress String?
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @updatedAt @map(name: "updated_at")
 }
