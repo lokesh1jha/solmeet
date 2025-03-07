@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useRouter } from "next/navigation"
 import { processPayment } from "@/lib/payment-service"
@@ -18,7 +18,18 @@ export default function BookingPage({ params }: { params: { id: string } }) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  // const [params, setParams] = useState<{ id: string } | null>(null)
+  // fetch params from router
+  // const paramsPromise = router
+  // console.log( paramsPromise)
+console.log( params, "--------")
+  // useEffect(() => {
+  //   if(paramsPromise) paramsPromise.then(setParams)
+  // }, [paramsPromise])
 
+  // if (!params) {
+  //   return <div>Loading...</div>
+  // }
   // This would fetch the expert data based on the ID in a real app
   const expert = {
     id: params.id,
