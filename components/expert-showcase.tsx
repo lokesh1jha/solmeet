@@ -13,7 +13,7 @@ const experts = [
     reviews: 124,
     price: 0.5,
     tags: ["Smart Contracts", "Program Development", "Security"],
-    image: "/placeholder.svg?height=400&width=400",
+    image: "https://images.pexels.com/photos/8090290/pexels-photo-8090290.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
   },
   {
     id: 2,
@@ -23,7 +23,7 @@ const experts = [
     reviews: 98,
     price: 0.65,
     tags: ["DeFi Protocols", "Tokenomics", "Yield Strategies"],
-    image: "/placeholder.svg?height=400&width=400",
+    image: "https://images.pexels.com/photos/7606047/pexels-photo-7606047.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
   },
   {
     id: 3,
@@ -33,7 +33,7 @@ const experts = [
     reviews: 87,
     price: 0.45,
     tags: ["NFT Collections", "Game Economics", "Marketplaces"],
-    image: "/placeholder.svg?height=400&width=400",
+    image: "https://images.pexels.com/photos/7606016/pexels-photo-7606016.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
   },
 ]
 

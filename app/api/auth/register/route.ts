@@ -28,6 +28,7 @@ export async function POST(request: Request) {
         username,
         password: hashedPassword,
         email,
+        role: "expert",
       },
     })
 

@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button"
 import { UserProfileMenu } from "@/components/user-profile-menu"
 import { Mountain, Menu, X } from "lucide-react"
 import { SolanaWalletButton } from "@/components/solana-wallet-button"
+import { useSession } from "next-auth/react"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
+  const user = useSession().data?.user
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b border-purple-500/20 bg-black/80 backdrop-blur-xl">
       <div className="container mx-auto px-4">
@@ -47,9 +49,9 @@ export function Navbar() {
             </nav>
           </div>
 
-          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
             <SolanaWalletButton />
-            <UserProfileMenu />
+            {user ? <UserProfileMenu /> : null}
 
             <Button
               variant="ghost"
@@ -59,7 +61,7 @@ export function Navbar() {
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
-          </div>
+            </div>
         </div>
       </div>
 

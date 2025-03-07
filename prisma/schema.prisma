@@ -14,13 +14,77 @@ datasource db {
 }
 
 model User {
-  id            String       @default(cuid()) @id
-  name          String?
-  email         String   @unique
-  username      String   @unique
-  password      String
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  username String  @unique
+  password String
   bio           String?
   walletAddress String?
+  role     Role
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @updatedAt @map(name: "updated_at")
+
+  // Relations
+  bookings Booking[] @relation("UserBookings")
+  expertise Booking[] @relation("ExpertBookings")
+  reviewsGiven Review[] @relation("UserReviews")
+  reviewsReceived Review[] @relation("ExpertReviews")
+}
+
+model Booking {
+  id             String        @id @default(uuid())
+  userId         String
+  expertId       String
+  status         BookingStatus
+  bookingDate    DateTime
+  bookingDuration Float // in minutes
+  
+  // Relations
+  user   User    @relation(name: "UserBookings", fields: [userId], references: [id])
+  expert User    @relation(name: "ExpertBookings", fields: [expertId], references: [id])
+  payment Payment?
+
+  @@index([userId])
+  @@index([expertId])
+}
+
+model Payment {
+  id        String @id @default(uuid())
+  bookingId String @unique
+  amount    Float
+  fromWalletAddress String
+  toWalletAddress String
+  transactionId String @unique
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([transactionId])
+}
+
+model Review {
+  id        String @id @default(uuid())
+  userId    String
+  expertId  String
+  rating    Int  // Ensure validation at the app level (1-5)
+  comment   String?
+
+  // Relations
+  user   User @relation(name: "UserReviews", fields: [userId], references: [id])
+  expert User @relation(name: "ExpertReviews", fields: [expertId], references: [id])
+
+  @@index([userId])
+  @@index([expertId])
+}
+
+enum Role {
+  user
+  expert
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
 }

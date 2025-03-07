@@ -39,9 +39,9 @@ export function HeroSection() {
               asChild
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none h-12 px-8 rounded-full"
             >
-              <Link href="/register">Register as an Expert</Link>
+              <Link href="/login">Login</Link>
             </Button>
-            <SolanaWalletButton />
+            {/* <SolanaWalletButton /> */}
           </div>
         </div>
       </div>
