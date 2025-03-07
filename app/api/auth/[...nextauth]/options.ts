@@ -37,6 +37,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email || "",
             username: user.username,
+            role: user.role,
           }
         } catch (error) {
           console.error("Error during user authorization:", error)
@@ -56,6 +57,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.email = user.email
         token.username = user.username
+        token.role = user.role
       }
       return token
     },
@@ -64,6 +66,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.email = token.email as string
         session.user.username = token.username as string
+        session.user.role = token.role as string
       }
       return session
     },

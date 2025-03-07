@@ -21,6 +21,7 @@ model User {
   password String
   bio           String?
   walletAddress String?
+  profilePicture String?
   role     Role
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @updatedAt @map(name: "updated_at")

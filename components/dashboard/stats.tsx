@@ -1,5 +1,9 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, Clock, CreditCard, Users } from "lucide-react"
+import { getSession } from "next-auth/react"
+import { useEffect, useState } from "react"
 
 const stats = [
   {
@@ -33,6 +37,20 @@ const stats = [
 ]
 
 export function Stats() {
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const session = await getSession()
+      if (session) {
+        const data = await session.user
+        setUser(data)
+      }
+    }
+
+    fetchData()
+  }, [])
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
