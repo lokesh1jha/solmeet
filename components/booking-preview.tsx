@@ -69,7 +69,7 @@ export function BookingPreview() {
                 <div className="p-6 border-b border-purple-500/20">
                   <div className="flex items-center gap-4">
                     <img
-                      src="/placeholder.svg?height=60&width=60"
+                      src="https://images.pexels.com/photos/8090290/pexels-photo-8090290.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
                       alt="Expert"
                       className="w-14 h-14 rounded-full object-cover border-2 border-purple-500/30"
                     />
