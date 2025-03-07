@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, use } from "react";
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useRouter } from "next/navigation"
 import { processPayment } from "@/lib/payment-service"
@@ -12,24 +12,14 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, Clock, CreditCard, Star } from "lucide-react"
 import Link from "next/link"
 
-export default function BookingPage({ params }: { params: { id: string } }) {
+export default function BookingPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const wallet = useWallet()
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  // const [params, setParams] = useState<{ id: string } | null>(null)
-  // fetch params from router
-  // const paramsPromise = router
-  // console.log( paramsPromise)
-console.log( params, "--------")
-  // useEffect(() => {
-  //   if(paramsPromise) paramsPromise.then(setParams)
-  // }, [paramsPromise])
-
-  // if (!params) {
-  //   return <div>Loading...</div>
-  // }
+  
   // This would fetch the expert data based on the ID in a real app
   const expert = {
     id: params.id,

@@ -11,14 +11,14 @@ async function getProfile(username: string) {
     select: {
       name: true,
       bio: true,
-      contactInfo: true,
     },
   })
 
   return user
 }
 
-export default async function PublicProfilePage({ params }: { params: { username: string } }) {
+export default async function PublicProfilePage(props: { params: Promise<{ username: string }> }) {
+  const params = await props.params;
   const profile = await getProfile(params.username)
 
   if (!profile) {
@@ -52,10 +52,10 @@ export default async function PublicProfilePage({ params }: { params: { username
                 <h2 className="text-lg font-semibold mb-2">Bio</h2>
                 <p className="text-gray-300">{profile.bio}</p>
               </div>
-              <div>
+              {/* <div>
                 <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
                 <p className="text-gray-300">{profile.contactInfo}</p>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>
