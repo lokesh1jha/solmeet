@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, CreditCard, Home, LogOut, Menu, MessageSquare, Settings, User, X } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { SolanaWalletButton } from "../solana-wallet-button"
+import { UserProfileMenu } from "../user-profile-menu"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -105,9 +106,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
           <div className="ml-auto flex items-center space-x-4">
             <SolanaWalletButton />
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-              <span className="font-medium text-white">JD</span>
-            </div>
+            <UserProfileMenu />
           </div>
         </header>
 

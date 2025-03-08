@@ -11,11 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { User, Settings, History, LogOut, Wallet } from "lucide-react"
-import { useWallet } from "@solana/wallet-adapter-react"
+import { useSession, signOut } from "next-auth/react"
 
 export function UserProfileMenu() {
-  const { connected, publicKey } = useWallet()
-  const walletAddress = publicKey?.toBase58()
+  const user = useSession().data?.user
 
   return (
     <DropdownMenu>
@@ -29,35 +28,29 @@ export function UserProfileMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-black/90 backdrop-blur-xl border border-purple-500/20">
-        {connected ? (
+        {user ? (
           <>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">John Doe</p>
-                <p className="text-xs text-muted-foreground">{walletAddress}</p>
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/profile">
+              <Link href="/dashboard/profile">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/profile#history">
-                <History className="mr-2 h-4 w-4" />
-                <span>Session History</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/profile/settings">
+              <Link href="/dashboard/settings">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => signOut()}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
