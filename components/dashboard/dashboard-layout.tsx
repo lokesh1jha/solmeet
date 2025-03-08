@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Calendar, CreditCard, Home, LogOut, Menu, MessageSquare, Settings, User, X } from "lucide-react"
@@ -11,8 +11,32 @@ import { SolanaWalletButton } from "../solana-wallet-button"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [currentPath, setCurrentPath] = useState("");
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    handleRouteChange(); // Set initial path
+    window.addEventListener("popstate", handleRouteChange);
+
+    return () => {
+      window.removeEventListener("popstate", handleRouteChange);
+    };
+  }, []);
+
+  const navItems = [
+    { href: "/dashboard", label: "Dashboard", icon: Home },
+    { href: "/dashboard/meetings", label: "Meetings", icon: Calendar },
+    { href: "/dashboard/messages", label: "Messages", icon: MessageSquare },
+    { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
+    { href: "/dashboard/profile", label: "Profile", icon: User },
+    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  ]
 
   return (
+
     <div className="min-h-screen bg-black text-white flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
@@ -24,9 +48,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-black/90 backdrop-blur-xl border-r border-purple-500/20 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-black/90 backdrop-blur-xl border-r border-purple-500/20 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="p-4 border-b border-purple-500/20 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center">
@@ -42,48 +65,22 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         <div className="py-4">
           <nav className="space-y-1 px-2">
-            <Link
-              href="/dashboard"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md bg-gradient-to-r from-purple-900/50 to-blue-900/50 text-white"
-            >
-              <Home className="mr-3 h-5 w-5 text-purple-400" />
-              Dashboard
-            </Link>
-            <Link
-              href="/dashboard/meetings"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-purple-900/20 hover:text-white"
-            >
-              <Calendar className="mr-3 h-5 w-5 text-purple-400" />
-              Meetings
-            </Link>
-            <Link
-              href="/dashboard/messages"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-purple-900/20 hover:text-white"
-            >
-              <MessageSquare className="mr-3 h-5 w-5 text-purple-400" />
-              Messages
-            </Link>
-            <Link
-              href="/dashboard/payments"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-purple-900/20 hover:text-white"
-            >
-              <CreditCard className="mr-3 h-5 w-5 text-purple-400" />
-              Payments
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-purple-900/20 hover:text-white"
-            >
-              <User className="mr-3 h-5 w-5 text-purple-400" />
-              Profile
-            </Link>
-            <Link
-              href="/dashboard/settings"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-purple-900/20 hover:text-white"
-            >
-              <Settings className="mr-3 h-5 w-5 text-purple-400" />
-              Settings
-            </Link>
+            {navItems.map((item) => {
+              const isActive = currentPath === item.href
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${isActive
+                      ? "bg-gradient-to-r from-purple-900/50 to-blue-900/50 text-white"
+                      : "text-gray-300 hover:bg-purple-900/20 hover:text-white"
+                    }`}
+                >
+                  <item.icon className="mr-3 h-5 w-5 text-purple-400" />
+                  {item.label}
+                </Link>
+              )
+            })}
           </nav>
         </div>
 
@@ -119,4 +116,3 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     </div>
   )
 }
-

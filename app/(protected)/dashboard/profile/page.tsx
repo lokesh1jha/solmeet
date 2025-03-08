@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Clock, DollarSign, User } from "lucide-react"
 import { useWallet } from "@solana/wallet-adapter-react"
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 
 export default function ProfilePage() {
   const { connected, publicKey } = useWallet()
@@ -53,10 +54,10 @@ export default function ProfilePage() {
   }
 
   return (
+    <DashboardLayout>
     <div className="min-h-screen bg-black text-white">
-      <Navbar />
       <main className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold mb-8">Your Profile</h1>
+        {/* <h1 className="text-3xl font-bold mb-8">Your Profile</h1> */}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <Card className="bg-black/40 backdrop-blur-sm border border-purple-500/20">
@@ -167,8 +168,8 @@ export default function ProfilePage() {
           </TabsContent>
         </Tabs>
       </main>
-      <Footer />
     </div>
+    </DashboardLayout>
   )
 }
 
