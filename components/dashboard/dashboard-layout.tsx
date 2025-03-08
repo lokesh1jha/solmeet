@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Calendar, CreditCard, Home, LogOut, Menu, MessageSquare, Settings, User, X } from "lucide-react"
+import { Calendar, CreditCard, Home, LogOut, Menu, MessageSquare, Mountain, Settings, User, X } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { SolanaWalletButton } from "../solana-wallet-button"
 import { UserProfileMenu } from "../user-profile-menu"
@@ -54,9 +54,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       >
         <div className="p-4 border-b border-purple-500/20 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center mr-2">
+            {/* <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center mr-2">
               <span className="font-bold text-white text-sm">SM</span>
-            </div>
+            </div> */}
+            <Mountain className="h-8 w-8 text-purple-400 mr-2" />
             <span className="font-bold text-lg">SolMeet</span>
           </Link>
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
