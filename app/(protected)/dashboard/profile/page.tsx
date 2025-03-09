@@ -56,6 +56,7 @@ export default function ProfilePage() {
       setEditing(false)
     } catch (error) {
       console.error("Error saving profile data:", error)
+      setEditing(false)
     }
   }
 

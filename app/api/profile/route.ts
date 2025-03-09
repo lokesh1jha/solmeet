@@ -20,6 +20,7 @@ export async function GET() {
         email: true,
         walletAddress: true,
         createdAt: true,
+        expertise: true
       },
     })
 
