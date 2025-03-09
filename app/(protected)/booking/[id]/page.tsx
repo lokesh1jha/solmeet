@@ -13,12 +13,15 @@ import { ChevronLeft, Clock, CreditCard, Star } from "lucide-react"
 import Link from "next/link"
 
 export default function BookingPage(props: { params: Promise<{ id: string }> }) {
+  const ALLOWED_WINDOW_FOR_BOOKING = 7;
   const params = use(props.params);
   const wallet = useWallet()
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedTime, setSelectedTime] = useState<string | null>(null)
   
   // This would fetch the expert data based on the ID in a real app
   const expert = {
@@ -32,6 +35,14 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     image: "/placeholder.svg?height=400&width=400",
     bio: "Solana core developer with 5+ years of experience building high-performance dApps and smart contracts. Specialized in secure program development and optimization techniques.",
     walletAddress: "EXPERT_WALLET_ADDRESS", // Replace with actual expert wallet address
+    availableWeekDays: ["Mon", "Tue", "Sat"],
+    startTimeSlot: "12:00 AM",
+    endTimeSlot: "04:00 PM"
+  }
+
+  const mockBookedSlots: { [key: string]: string[] } = {
+    "11-03-2025": ["1:00 PM", "2:00 PM"],
+    "15-03-2025": ["9:00 AM", "10:00 AM"]
   }
 
   const handlePayment = async () => {
@@ -54,6 +65,101 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
       setIsProcessing(false)
     }
   }
+
+  const renderCalendar = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = [];
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(year, month, i);
+      const dayName = date.toLocaleString('default', { weekday: 'short' });
+
+      if (expert.availableWeekDays.includes(dayName) && i >= today.getDate() && i <= today.getDate() + ALLOWED_WINDOW_FOR_BOOKING) {
+        days.push(
+          <button
+            key={date.toDateString()}
+            className={`text-center py-2 rounded-md text-sm ${
+              selectedDate?.toDateString() === date.toDateString()
+                ? "bg-blue-900/30 border border-blue-500/30 text-white"
+                : "hover:bg-purple-900/20 text-gray-300"
+            }`}
+            onClick={() => setSelectedDate(date)}
+          >
+            {i}
+          </button>
+        );
+      } else {
+        days.push(
+          <div key={date.toDateString()} className="text-center py-2 rounded-md text-sm text-gray-400 bg-gray-800">
+            {i}
+          </div>
+        );
+      }
+    }
+
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const emptyDays = Array.from({ length: firstDayOfMonth }, (_, index) => (
+      <div key={`empty-${index}`} className="text-center py-2 rounded-md text-sm text-gray-400 bg-gray-800"></div>
+    ));
+
+    return (
+      <div className="mb-6">
+        <h3 className="text-sm text-gray-400 mb-3">{today.toLocaleString('default', { month: 'long' })} {year}</h3>
+        <div className="grid grid-cols-7 gap-2">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            <div key={day} className="text-center text-xs text-gray-400 py-1">
+              {day}
+            </div>
+          ))}
+          {emptyDays}
+          {days}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTimeSlots = () => {
+    if (!selectedDate) return null;
+
+    const startTime = new Date(`1970-01-01T${expert.startTimeSlot}`);
+    const endTime = new Date(`1970-01-01T${expert.endTimeSlot}`);
+    console.log(selectedDate, startTime, endTime)
+    const slots = [];
+    const bookedSlots = mockBookedSlots[selectedDate.toISOString().split('T')[0]] || [];
+
+    for (let time = startTime; time < endTime; time.setHours(time.getHours() + 1)) {
+      const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      slots.push(
+        <button
+          key={timeString}
+          className={`flex items-center justify-center p-3 rounded-lg border text-sm ${
+            selectedTime === timeString
+              ? "border-blue-500/30 bg-blue-900/20 text-white"
+              : bookedSlots.includes(timeString)
+              ? "border-gray-500/20 bg-gray-900/10 text-gray-500 cursor-not-allowed"
+              : "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
+          }`}
+          onClick={() => !bookedSlots.includes(timeString) && setSelectedTime(timeString)}
+          disabled={bookedSlots.includes(timeString)}
+        >
+          <Clock className={`h-4 w-4 mr-2 ${selectedTime === timeString ? "text-blue-400" : "text-purple-400"}`} />
+          <span>{timeString}</span>
+        </button>
+      );
+    }
+
+    return (
+      <div>
+        <h3 className="text-sm text-gray-400 mb-3">Available Time Slots</h3>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+          {slots}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -128,49 +234,8 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold mb-4">Select a Date & Time</h2>
 
-                <div className="mb-6">
-                  <h3 className="text-sm text-gray-400 mb-3">October 2023</h3>
-                  <div className="grid grid-cols-7 gap-2">
-                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                      <div key={day} className="text-center text-xs text-gray-400 py-1">
-                        {day}
-                      </div>
-                    ))}
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
-                      <button
-                        key={date}
-                        className={`text-center py-2 rounded-md text-sm ${
-                          date === 16
-                            ? "bg-blue-900/30 border border-blue-500/30 text-white"
-                            : "hover:bg-purple-900/20 text-gray-300"
-                        }`}
-                      >
-                        {date}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm text-gray-400 mb-3">Available Time Slots</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    {["9:00 AM", "10:00 AM", "11:00 AM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"].map(
-                      (time, index) => (
-                        <button
-                          key={time}
-                          className={`flex items-center justify-center p-3 rounded-lg border text-sm ${
-                            index === 4
-                              ? "border-blue-500/30 bg-blue-900/20 text-white"
-                              : "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
-                          }`}
-                        >
-                          <Clock className={`h-4 w-4 mr-2 ${index === 4 ? "text-blue-400" : "text-purple-400"}`} />
-                          <span>{time}</span>
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
+                {renderCalendar()}
+                {renderTimeSlots()}
               </CardContent>
             </Card>
 
@@ -249,4 +314,3 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     </div>
   )
 }
-
