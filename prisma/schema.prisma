@@ -27,11 +27,31 @@ model User {
   updatedAt     DateTime  @updatedAt @map(name: "updated_at")
 
   // Relations
+  expertProfile ExpertProfile? // One-to-one relation
   bookings Booking[] @relation("UserBookings")
   expertise Booking[] @relation("ExpertBookings")
   reviewsGiven Review[] @relation("UserReviews")
   reviewsReceived Review[] @relation("ExpertReviews")
 }
+
+model ExpertProfile {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  tags           String[]  
+  availableWeekDays WeekDay[] // Enum array for weekdays
+  startTimeSlot  DateTime  // Store in UTC
+  endTimeSlot    DateTime  // Store in UTC
+  hourlyRate     Float     
+  rating         Float     @default(0.0)
+  reviewCount    Int       @default(0)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+
 
 model Booking {
   id             String        @id @default(uuid())
@@ -39,8 +59,10 @@ model Booking {
   expertId       String
   status         BookingStatus
   bookingDate    DateTime
-  bookingDuration Float // in minutes
-  
+  bookingDuration Float // Duration in minutes
+  durationUnit   String  @default("minutes") // "minutes" or "hours"
+  priceAtBooking Float   // Store expert's rate at the time of booking
+
   // Relations
   user   User    @relation(name: "UserBookings", fields: [userId], references: [id])
   expert User    @relation(name: "ExpertBookings", fields: [expertId], references: [id])
@@ -54,9 +76,11 @@ model Payment {
   id        String @id @default(uuid())
   bookingId String @unique
   amount    Float
+  currency  String @default("SOL") // Default to Solana
   fromWalletAddress String
   toWalletAddress String
   transactionId String @unique
+  paymentStatus String @default("pending") // pending, completed, failed
 
   // Relations
   booking Booking @relation(fields: [bookingId], references: [id])
@@ -88,4 +112,14 @@ enum BookingStatus {
   pending
   confirmed
   cancelled
+}
+
+enum WeekDay {
+  Mon
+  Tue
+  Wed
+  Thu
+  Fri
+  Sat
+  Sun
 }

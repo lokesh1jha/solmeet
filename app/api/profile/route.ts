@@ -20,13 +20,14 @@ export async function GET() {
         email: true,
         walletAddress: true,
         createdAt: true,
+        expertise: true
       },
     })
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
-
+    console.log("backend data ", user)
     return NextResponse.json(user)
   } catch (error) {
     console.error("Profile fetch error:", error)
@@ -34,7 +35,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
 
   if (!session || !session.user) {
@@ -42,16 +43,49 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const { name, bio, contactInfo, walletAddress } = await request.json()
+    const { name, bio, walletAddress, expertise } = (await request.json()).data
 
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         name,
         walletAddress,
+        bio,
       },
     })
 
+    // Check if an ExpertProfile exists
+    const existingExpertProfile = await prisma.expertProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (existingExpertProfile) {
+      // Update existing ExpertProfile
+      await prisma.expertProfile.update({
+        where: { userId: session.user.id },
+        data: {
+          tags: expertise.tags,
+          availableWeekDays: expertise.availableWeekDays,
+          startTimeSlot: expertise.startTimeSlot,
+          endTimeSlot: expertise.endTimeSlot,
+          hourlyRate: expertise.hourlyRate,
+        },
+      });
+    } else {
+      // Create new ExpertProfile
+      await prisma.expertProfile.create({
+        data: {
+          userId: session.user.id,
+          tags: expertise.tags,
+          availableWeekDays: expertise.availableWeekDays,
+          startTimeSlot: expertise.startTimeSlot,
+          endTimeSlot: expertise.endTimeSlot,
+          hourlyRate: expertise.hourlyRate,
+        },
+      });
+    }
+
+    console.log("backed post call", updatedUser)
     return NextResponse.json({ message: "Profile updated successfully" })
   } catch (error) {
     console.error("Profile update error:", error)
