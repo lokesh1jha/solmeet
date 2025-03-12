@@ -39,8 +39,8 @@ model ExpertProfile {
   userId         String    @unique
   tags           String[]  
   availableWeekDays WeekDay[] // Enum array for weekdays
-  startTimeSlot  String    // Example: "12:00 AM"
-  endTimeSlot    String    // Example: "04:00 PM"
+  startTimeSlot  DateTime  // Store in UTC
+  endTimeSlot    DateTime  // Store in UTC
   hourlyRate     Float     
   rating         Float     @default(0.0)
   reviewCount    Int       @default(0)
