@@ -56,7 +56,7 @@ export default async function PublicProfilePage(props: { params: Promise<{ usern
                 <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
                 <p className="text-gray-300">{profile.contactInfo}</p>
               </div> */}
-            </div>
+            </div> 
           </CardContent>
         </Card>
       </main>
