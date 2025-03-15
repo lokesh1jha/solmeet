@@ -20,7 +20,7 @@ export async function GET() {
         email: true,
         walletAddress: true,
         createdAt: true,
-        expertise: true
+        expertProfile: true,
       },
     })
 
@@ -43,7 +43,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, bio, walletAddress, expertise } = (await request.json()).data
+    const { name, walletAddress, bio, expertProfile } = (await request.json()).data
+
+
 
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
         bio,
       },
     })
+
 
     // Check if an ExpertProfile exists
     const existingExpertProfile = await prisma.expertProfile.findUnique({
@@ -64,11 +67,11 @@ export async function POST(request: Request) {
       await prisma.expertProfile.update({
         where: { userId: session.user.id },
         data: {
-          tags: expertise.tags,
-          availableWeekDays: expertise.availableWeekDays,
-          startTimeSlot: expertise.startTimeSlot,
-          endTimeSlot: expertise.endTimeSlot,
-          hourlyRate: expertise.hourlyRate,
+          tags: expertProfile.tags,
+          availableWeekDays: expertProfile.availableWeekDays,
+          startTimeSlot: expertProfile.startTimeSlot,
+          endTimeSlot: expertProfile.endTimeSlot,
+          hourlyRate: expertProfile.hourlyRate,
         },
       });
     } else {
@@ -76,11 +79,11 @@ export async function POST(request: Request) {
       await prisma.expertProfile.create({
         data: {
           userId: session.user.id,
-          tags: expertise.tags,
-          availableWeekDays: expertise.availableWeekDays,
-          startTimeSlot: expertise.startTimeSlot,
-          endTimeSlot: expertise.endTimeSlot,
-          hourlyRate: expertise.hourlyRate,
+          tags: expertProfile.tags,
+          availableWeekDays: expertProfile.availableWeekDays,
+          startTimeSlot: expertProfile.startTimeSlot,
+          endTimeSlot: expertProfile.endTimeSlot,
+          hourlyRate: expertProfile.hourlyRate,
         },
       });
     }

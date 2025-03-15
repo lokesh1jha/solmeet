@@ -1,9 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import prisma from "@/lib/prisma"
 
 async function getProfile(username: string) {
   const user = await prisma.user.findUnique({
@@ -56,7 +54,7 @@ export default async function PublicProfilePage(props: { params: Promise<{ usern
                 <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
                 <p className="text-gray-300">{profile.contactInfo}</p>
               </div> */}
-            </div>
+            </div> 
           </CardContent>
         </Card>
       </main>
