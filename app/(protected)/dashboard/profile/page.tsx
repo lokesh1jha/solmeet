@@ -11,6 +11,9 @@ import axios from "axios"
 import { toast } from "sonner";
 import { UserInfo, WeekDay, ExpertProfile } from "@/types/frontend-types"
 import { convertToUTC } from "@/lib/timeToUTC"
+import  TagInput  from "@/components/ui/tag-input"
+
+const mockTags = ["Solana Expert", "Web3 Expert", "DevRel", "Blockchain Developer", "Smart Contract Developer"];
 
 export default function ProfilePage() {
   const [editing, setEditing] = useState(false)
@@ -20,6 +23,7 @@ export default function ProfilePage() {
   const [endTimeSlot, setEndTimeSlot] = useState({ hour: "10", minute: "30", period: "PM" });
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [expertProfile, setExpertProfile] = useState<ExpertProfile | null>(null)
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchProfileData() {
@@ -40,12 +44,19 @@ export default function ProfilePage() {
             return { hour, minute, period };
           };
 
+          if(response.data.expertProfile.availableWeekDays) {
+            setAvailableWeekDays(response.data.expertProfile.availableWeekDays);
+          }
           // Convert UTC to Local
           const startTimeLocal = convertToLocalTime(new Date(response.data.expertProfile.startTimeSlot));
           const endTimeLocal = convertToLocalTime(new Date(response.data.expertProfile.endTimeSlot));
 
           setStartTimeSlot(startTimeLocal);
           setEndTimeSlot(endTimeLocal);
+        }
+
+        if (response.data.expertProfile.tags) {
+          setTags(response.data.expertProfile.tags);
         }
       } catch (error: any) {
         console.error("Error fetching profile data:", error)
@@ -67,11 +78,11 @@ export default function ProfilePage() {
             expertProfile.startTimeSlot = startTime;
             expertProfile.endTimeSlot = endTime;
             expertProfile.availableWeekDays = availableWeekDays;
+            expertProfile.tags = tags;
             setSelectedTimeSlots([startTime.toLocaleString().split(",")[1].trim(), endTime.toLocaleString().split(",")[1].trim()])
           }
 
-          const payload = { ...userInfo, expertProfile: { ...expertProfile } };
-          await axios.post("/api/profile", { data: payload });
+          await axios.post("/api/profile", { data: userInfo });
           setEditing(false);
           resolve("Profile saved successfully! 🎉");
         } catch (error) {
@@ -183,34 +194,34 @@ export default function ProfilePage() {
                           <>
                             <div>
                               <label className="block text-sm font-medium text-gray-300">Select Days</label>
-                              <DropdownMenu>
+                                <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button className="w-half text-left">{availableWeekDays.length > 0 ? availableWeekDays.join(", ") : "Select Days"}</Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="bg-white text-black rounded shadow-lg p-2" side="bottom" align="start">
                                   {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (
-                                    <DropdownMenuItem key={day} asChild>
-                                      <label className="flex items-center space-x-2">
-                                        <input
-                                          type="checkbox"
-                                          value={day}
-                                          checked={availableWeekDays.includes(day as WeekDay)}
-                                          onChange={(e) => {
-                                            const selectedDay = day as WeekDay;
-                                            if (e.target.checked) {
-                                              setAvailableWeekDays([...availableWeekDays, selectedDay])
-                                            } else {
-                                              setAvailableWeekDays(availableWeekDays.filter((d) => d !== selectedDay))
-                                            }
-                                          }}
-                                          className="form-checkbox text-purple-500"
-                                        />
-                                        <span>{day}</span>
-                                      </label>
-                                    </DropdownMenuItem>
+                                  <DropdownMenuItem key={day} asChild>
+                                    <label className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      value={day}
+                                      checked={availableWeekDays.includes(day as WeekDay)}
+                                      onChange={(e) => {
+                                      const selectedDay = day as WeekDay;
+                                      if (e.target.checked) {
+                                        setAvailableWeekDays([...availableWeekDays, selectedDay])
+                                      } else {
+                                        setAvailableWeekDays(availableWeekDays.filter((d) => d !== selectedDay))
+                                      }
+                                      }}
+                                      className="form-checkbox text-purple-500"
+                                    />
+                                    <span>{day}</span>
+                                    </label>
+                                  </DropdownMenuItem>
                                   ))}
                                 </DropdownMenuContent>
-                              </DropdownMenu>
+                                </DropdownMenu>
                             </div>
                             <div className="flex gap-5">
                               <TimeSelector label="From" time={startTimeSlot} setTime={setStartTimeSlot} />
@@ -221,6 +232,27 @@ export default function ProfilePage() {
                           <div>
                             <p className="text-l text-gray-300">Selected Days: {availableWeekDays.join(", ")}</p>
                             <p className="text-l text-gray-300">Selected Time Slots: {selectedTimeSlots.join(" - ")}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-lg font-semibold">Tags</h2>
+                      </div>
+                      <div className="mt-4">
+                        {editing ? (
+                          <TagInput
+                            tags={tags}
+                            setTags={setTags}
+                            suggestions={mockTags}
+                          />
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {tags.map((tag, index) => (
+                              <span key={index} className="bg-purple-500 text-white px-2 py-1 rounded">{tag}</span>
+                            ))}
                           </div>
                         )}
                       </div>
