@@ -1,6 +1,6 @@
 export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
 
-export type Expertise = {
+export type ExpertProfile = {
     id?: string;
     userId: string; 
     tags: string[];
@@ -19,5 +19,5 @@ export type UserInfo = {
     email: string;
     walletAddress: string;
     createdAt: string;
-    expertise: Expertise
+    expertProfile: ExpertProfile
 };

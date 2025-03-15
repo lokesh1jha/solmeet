@@ -20,7 +20,7 @@ export async function GET() {
         email: true,
         walletAddress: true,
         createdAt: true,
-        expertise: true
+        expertProfile: true,
       },
     })
 
@@ -43,16 +43,22 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, bio, walletAddress, expertise } = (await request.json()).data
+    const { userInfo, expertise } = (await request.json()).data
 
-    const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        name,
-        walletAddress,
-        bio,
-      },
-    })
+
+
+    console.log("userInfo........", userInfo)
+    console.log("expertise........", expertise)
+
+    // const updatedUser = await prisma.user.update({
+    //   where: { id: session.user.id },
+    //   data: {
+    //     userInfo.name,
+    //     walletAddress,
+    //     bio,
+    //   },
+    // })
+
 
     // Check if an ExpertProfile exists
     const existingExpertProfile = await prisma.expertProfile.findUnique({
@@ -85,7 +91,7 @@ export async function POST(request: Request) {
       });
     }
 
-    console.log("backed post call", updatedUser)
+    // console.log("backed post call", updatedUser)
     return NextResponse.json({ message: "Profile updated successfully" })
   } catch (error) {
     console.error("Profile update error:", error)

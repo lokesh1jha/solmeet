@@ -9,28 +9,26 @@ import { DropdownMenuTrigger, DropdownMenu, DropdownMenuItem, DropdownMenuConten
 import TimeSelector from "@/components/calender/time"
 import axios from "axios"
 import { toast } from "sonner";
-import { UserInfo, WeekDay } from "@/types/frontend-types"
+import { UserInfo, WeekDay, ExpertProfile } from "@/types/frontend-types"
 import { convertToUTC } from "@/lib/timeToUTC"
 
 export default function ProfilePage() {
+  const [editing, setEditing] = useState(false)
   const [availableWeekDays, setAvailableWeekDays] = useState<WeekDay[]>([])
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([])
-  const [editing, setEditing] = useState(false)
-  const [startTimeSlot, setStartTimeSlot] = useState({ hour: "01", minute: "30", period: "AM" });
-  const [endTimeSlot, setEndTimeSlot] = useState({ hour: "05", minute: "30", period: "PM" });
-
-
+  const [startTimeSlot, setStartTimeSlot] = useState({ hour: "08", minute: "00", period: "PM" });
+  const [endTimeSlot, setEndTimeSlot] = useState({ hour: "10", minute: "30", period: "PM" });
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
+  const [expertProfile, setExpertProfile] = useState<ExpertProfile | null>(null)
 
   useEffect(() => {
     async function fetchProfileData() {
       try {
         const response = await axios.get<UserInfo>("/api/profile");
-        // console.log(response.data);
         setUserInfo(response.data)
-        const expertise = response.data.expertise;
+        setExpertProfile(response.data.expertProfile)
 
-        if (expertise.startTimeSlot && expertise.endTimeSlot) {
+        if (response.data.expertProfile.startTimeSlot && response.data.expertProfile.endTimeSlot) {
           const convertToLocalTime = (utcDateTime: Date) => {
             const localTime = new Date(utcDateTime)
               .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
@@ -43,12 +41,8 @@ export default function ProfilePage() {
           };
 
           // Convert UTC to Local
-          const startTimeLocal = convertToLocalTime(new Date(expertise.startTimeSlot));
-          const endTimeLocal = convertToLocalTime(new Date(expertise.endTimeSlot));
-
-          console.log("Start Time (Local):", startTimeLocal); // Example: "5:30 PM"
-          console.log("End Time (Local):", endTimeLocal);     // Example: "9:30 PM"
-
+          const startTimeLocal = convertToLocalTime(new Date(response.data.expertProfile.startTimeSlot));
+          const endTimeLocal = convertToLocalTime(new Date(response.data.expertProfile.endTimeSlot));
 
           setStartTimeSlot(startTimeLocal);
           setEndTimeSlot(endTimeLocal);
@@ -62,37 +56,33 @@ export default function ProfilePage() {
     fetchProfileData()
   }, [])
 
-
   const handleSave = async () => {
-    console.log("-----------", startTimeSlot, endTimeSlot)
     toast.promise(
       new Promise<string>(async (resolve, reject) => {
         try {
           const startTime = convertToUTC(startTimeSlot);
           const endTime = convertToUTC(endTimeSlot);
-          if (startTime && endTime && userInfo?.expertise) {
-            userInfo.expertise.startTimeSlot = startTime;
-            userInfo.expertise.endTimeSlot = endTime;
-            userInfo.expertise.availableWeekDays = availableWeekDays
-            console.log(userInfo)
+
+          if (startTime && endTime && expertProfile) {
+            expertProfile.startTimeSlot = startTime;
+            expertProfile.endTimeSlot = endTime;
+            expertProfile.availableWeekDays = availableWeekDays;
             setSelectedTimeSlots([startTime.toLocaleString().split(",")[1].trim(), endTime.toLocaleString().split(",")[1].trim()])
           }
-          console.log(availableWeekDays)
 
-
-          // const response = await axios.post("/api/profile", { data: userInfo });
-          // console.log(response.data);
+          const payload = { ...userInfo, expertProfile: { ...expertProfile } };
+          await axios.post("/api/profile", { data: payload });
           setEditing(false);
-          resolve("Profile saved successfully! 🎉"); // Resolve with success message
+          resolve("Profile saved successfully! 🎉");
         } catch (error) {
           console.error("Error saving profile data:", error);
-          reject(new Error("Error saving profile data. Please try again.")); // Reject with error message
+          reject(new Error("Error saving profile data. Please try again."));
         }
       }),
       {
         loading: "Saving profile...",
-        success: (message) => message, // Use resolved success message
-        error: (error) => error.message, // Use error message
+        success: (message) => message,
+        error: (error) => error.message,
       }
     );
   };
@@ -172,20 +162,17 @@ export default function ProfilePage() {
                             <input
                               type="number"
                               step="0.01"
-                              value={userInfo.expertise.hourlyRate || ""}
-                              onChange={(e) => setUserInfo({ ...userInfo, expertise: { ...userInfo.expertise, hourlyRate: Number(e.target.value) } } as UserInfo)}
+                              value={expertProfile?.hourlyRate || ""}
+                              onChange={(e) => setExpertProfile({ ...expertProfile, hourlyRate: Number(e.target.value) } as ExpertProfile)}
                               className="form-input text-black bg-white rounded"
                             />
                             <p className="ml-2">SOL</p>
                           </div>
                         ) : (
-                          <p className="break-all">{userInfo.expertise.hourlyRate ? `$${userInfo.expertise.hourlyRate}/hr SOL` : "Not Set Yet"}</p>
+                          <p className="break-all">{expertProfile?.hourlyRate ? `$${expertProfile.hourlyRate}/hr SOL` : "Not Set Yet"}</p>
                         )}
                       </div>
                     </div>
-
-
-
 
                     <div>
                       <div className="flex justify-between items-center">
@@ -224,7 +211,6 @@ export default function ProfilePage() {
                                   ))}
                                 </DropdownMenuContent>
                               </DropdownMenu>
-
                             </div>
                             <div className="flex gap-5">
                               <TimeSelector label="From" time={startTimeSlot} setTime={setStartTimeSlot} />
