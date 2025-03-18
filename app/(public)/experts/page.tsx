@@ -24,6 +24,7 @@ export interface Expert {
     email: string
     bio: string | null
     image: string
+    walletAddress: string
   }
 }
 

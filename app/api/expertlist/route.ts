@@ -37,6 +37,7 @@ export async function GET(request: Request) {
                         email: true,
                         bio: true,
                         image: true,
+                        walletAddress: true,
                     },
                 },
             },

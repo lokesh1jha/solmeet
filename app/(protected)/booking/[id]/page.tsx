@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, Clock, CreditCard, Star } from "lucide-react"
 import Link from "next/link"
+import { useAppContext } from "@/context/AppContext";
 
 export default function BookingPage(props: { params: Promise<{ id: string }> }) {
   const ALLOWED_WINDOW_FOR_BOOKING = 7;
@@ -22,27 +23,14 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   const [success, setSuccess] = useState("")
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const { expertForBooking } = useAppContext()
   
-  // This would fetch the expert data based on the ID in a real app
-  const expert = {
-    id: params.id,
-    name: "Alex Rivera",
-    role: "Solana Core Developer",
-    rating: 4.9,
-    reviews: 124,
-    price: 0.5,
-    tags: ["Smart Contracts", "Program Development", "Security"],
-    image: "/placeholder.svg?height=400&width=400",
-    bio: "Solana core developer with 5+ years of experience building high-performance dApps and smart contracts. Specialized in secure program development and optimization techniques.",
-    walletAddress: "EXPERT_WALLET_ADDRESS", // Replace with actual expert wallet address
-    availableWeekDays: ["Mon", "Tue", "Sat"],
-    startTimeSlot: "12:00 AM",
-    endTimeSlot: "04:00 PM"
-  }
+  const expert = expertForBooking;
 
-  const mockBookedSlots: { [key: string]: string[] } = {
-    "11-03-2025": ["1:00 PM", "2:00 PM"],
-    "15-03-2025": ["9:00 AM", "10:00 AM"]
+  if (!expert) {
+    console.error("No expert selected for booking")
+    // router.push("/experts")
+    return
   }
 
   const handlePayment = async () => {
@@ -56,7 +44,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     setSuccess("")
 
     try {
-      const signature = await processPayment(wallet, expert.walletAddress, expert.price)
+      const signature = await processPayment(wallet, expert.user.walletAddress, expert.hourlyRate)
       setSuccess(`Payment successful! Transaction signature: ${signature}`)
       // Here you would typically update the booking status in your database
     } catch (err) {
@@ -124,26 +112,27 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   const renderTimeSlots = () => {
     if (!selectedDate) return null;
 
-    const startTime = new Date(`1970-01-01T${expert.startTimeSlot}`);
-    const endTime = new Date(`1970-01-01T${expert.endTimeSlot}`);
-    console.log(selectedDate, startTime, endTime)
+    const startTime = new Date(expert.startTimeSlot);
+    const endTime = new Date(expert.endTimeSlot);
     const slots = [];
-    const bookedSlots = mockBookedSlots[selectedDate.toISOString().split('T')[0]] || [];
+    const availableWeekDays = expert.availableWeekDays;
 
-    for (let time = startTime; time < endTime; time.setHours(time.getHours() + 1)) {
+    for (let time = new Date(startTime); time < endTime; time.setHours(time.getHours() + 1)) {
       const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dayName = selectedDate.toLocaleString('default', { weekday: 'short' });
+
       slots.push(
         <button
           key={timeString}
           className={`flex items-center justify-center p-3 rounded-lg border text-sm ${
             selectedTime === timeString
               ? "border-blue-500/30 bg-blue-900/20 text-white"
-              : bookedSlots.includes(timeString)
-              ? "border-gray-500/20 bg-gray-900/10 text-gray-500 cursor-not-allowed"
-              : "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
+              : availableWeekDays.includes(dayName)
+              ? "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
+              : "border-gray-500/20 bg-gray-900/10 text-gray-500 cursor-not-allowed"
           }`}
-          onClick={() => !bookedSlots.includes(timeString) && setSelectedTime(timeString)}
-          disabled={bookedSlots.includes(timeString)}
+          onClick={() => availableWeekDays.includes(dayName) && setSelectedTime(timeString)}
+          disabled={!availableWeekDays.includes(dayName)}
         >
           <Clock className={`h-4 w-4 mr-2 ${selectedTime === timeString ? "text-blue-400" : "text-purple-400"}`} />
           <span>{timeString}</span>
@@ -161,6 +150,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     );
   };
 
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-8">
@@ -176,19 +166,19 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                 <div className="flex flex-col items-center text-center mb-6">
                   <div className="relative mb-4">
                     <img
-                      src={expert.image || "/placeholder.svg"}
-                      alt={expert.name}
+                      src={expert.user.image || "/placeholder.svg"}
+                      alt={expert.user.name}
                       className="w-32 h-32 rounded-full object-cover border-2 border-purple-500/30"
                     />
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center bg-black/80 backdrop-blur-sm px-3 py-1 rounded-full border border-yellow-500/30">
                       <Star className="h-3 w-3 text-yellow-400 mr-1" />
                       <span className="text-sm font-medium">{expert.rating}</span>
-                      <span className="text-xs text-gray-400 ml-1">({expert.reviews})</span>
+                      <span className="text-xs text-gray-400 ml-1">({expert.reviewCount})</span>
                     </div>
                   </div>
 
-                  <h2 className="text-xl font-bold">{expert.name}</h2>
-                  <p className="text-purple-400 mb-3">{expert.role}</p>
+                  <h2 className="text-xl font-bold">{expert.user.name}</h2>
+                  {/* <p className="text-purple-400 mb-3">{expert.role}</p> */}
 
                   <div className="flex flex-wrap justify-center gap-2 mb-4">
                     {expert.tags.map((tag) => (
@@ -217,13 +207,13 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                       <CreditCard className="h-5 w-5 text-purple-400 mr-2" />
                       <span>Session Price</span>
                     </div>
-                    <span className="font-medium">{expert.price} SOL</span>
+                    <span className="font-medium">{expert.hourlyRate} SOL/Hr</span>
                   </div>
                 </div>
 
                 <div className="mt-6">
-                  <h3 className="font-medium mb-2">About {expert.name}</h3>
-                  <p className="text-gray-400 text-sm">{expert.bio}</p>
+                  <h3 className="font-medium mb-2">About {expert.user.name}</h3>
+                  <p className="text-gray-400 text-sm">{expert.user.bio}</p>
                 </div>
               </CardContent>
             </Card>
@@ -271,7 +261,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Session Fee</span>
-                    <span>{expert.price} SOL</span>
+                    <span>{expert.hourlyRate} SOL</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Platform Fee</span>
@@ -279,7 +269,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                   </div>
                   <div className="border-t border-purple-500/20 pt-3 flex justify-between font-bold">
                     <span>Total</span>
-                    <span>{(expert.price + 0.05).toFixed(2)} SOL</span>
+                    <span>{(expert.hourlyRate + 0.05).toFixed(2)} SOL</span>
                   </div>
                 </div>
 

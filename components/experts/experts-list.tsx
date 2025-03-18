@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Star } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Expert } from "@/app/(public)/experts/page"
+import { useAppContext } from "@/context/AppContext"
 
 interface ExpertsListProps {
   searchQuery: string
@@ -23,13 +24,21 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
   const { data: session } = useSession()
   const loggedeIn = !!session
   const [selectedExpert, setSelectedExpert] = useState<(typeof experts)[0] | null>(null)
+  const { setExpertForBooking, expertForBooking } = useAppContext()
 
-  const handleConnectClick = (expert: (typeof experts)[0]) => {
+
+  const handleBookingClick = (expert: (typeof experts)[0]) => {
+    console.log("handleBookingClick")
     if (loggedeIn) {
-      // If wallet is connected, proceed to booking
-      window.location.href = `/booking/${expert.id}`
+      if (expert) {
+      console.log("logged in")
+
+        setExpertForBooking(expert)
+        console.log("setExpertForBooking", expertForBooking, expert )
+        // window.location.href = `/booking/${expert.id}`
+      }
     } else {
-      // If wallet is not connected, show dialog
+      // If not logged in, set the selected expert and redirect to login page
       setSelectedExpert(expert)
       window.location.href = `/login`
     }
@@ -63,9 +72,9 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
 
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-1">{expert.user.name}</h3>
-                <p className="text-purple-400 mb-3">{expert.user.role}</p>
+                {/* <p className="text-purple-400 mb-3">{expert.user.role}</p> */}
 
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4 mt-5">
                   {expert.tags.map((tag) => (
                     <Badge
                       key={tag}
@@ -87,7 +96,9 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center text-gray-400">
                     <Clock className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{expert.startTimeSlot} - {expert.endTimeSlot}</span>
+                    <span className="text-sm">
+                      {new Date(expert.startTimeSlot).toLocaleTimeString()} - {new Date(expert.endTimeSlot).toLocaleTimeString()}
+                    </span>
                   </div>
                   <div className="text-right">
                     <span className="text-lg font-bold">{expert.hourlyRate} SOL</span>
@@ -97,7 +108,7 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
 
                 <Button
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-none"
-                  onClick={() => handleConnectClick(expert)}
+                  onClick={() => handleBookingClick(expert)}
                 >
                   {loggedeIn ? "Book Session" : "Login to Book"}
                 </Button>
