@@ -47,8 +47,12 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   useEffect(() => {
     if (expert) {
       const halfHourRate = parseFloat((expert.hourlyRate / 2).toFixed(2))
+      let platformFeePercentage = parseFloat(process.env.PLATFORM_FEES_PERCENTAGE || "0.1")
+      const platformFees = halfHourRate * platformFeePercentage
+
+      setPlatformFee(platformFees);
       setHalfHourlyRate(halfHourRate);
-      setTotal(halfHourRate + platformFee);
+      setTotal(halfHourRate + platformFees);
     }
   }
   , [expert]);
@@ -56,6 +60,8 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   if(!expert) return null;
 
   const handlePayment = async () => {
+    console.log("Payment processing...", wallet, expert.user.walletAddress, halfHourlyRate, platformFee);
+
     if (!wallet.connected) {
       setError("Please connect your wallet to make a payment.")
       return
@@ -71,7 +77,8 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     setSuccess("")
 
     try {
-      const signature = await processPayment(wallet, expert.user.walletAddress, expert.hourlyRate)
+      console.log("Payment processing...", wallet, expert.user.walletAddress, halfHourlyRate, parseFloat(platformFee.toFixed(2)));
+      const signature = await processPayment(wallet, expert.user.walletAddress, halfHourlyRate, parseFloat(platformFee.toFixed(2)))
       setSuccess(`Payment successful! Transaction signature: ${signature}`)
       // Here you would typically update the booking status in your database
     } catch (err) {
