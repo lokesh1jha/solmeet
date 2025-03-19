@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, Clock, CreditCard, Star } from "lucide-react"
 import Link from "next/link"
 import { useAppContext } from "@/context/AppContext";
+import { SolanaWalletButton } from "@/components/solana-wallet-button";
 
 export default function BookingPage(props: { params: Promise<{ id: string }> }) {
   const ALLOWED_WINDOW_FOR_BOOKING = 14;
@@ -23,6 +24,9 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   const [success, setSuccess] = useState("")
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [halfHourlyRate, setHalfHourlyRate] = useState(0)
+  const [platformFee, setPlatformFee] = useState(0.05)
+  const [total, setTotal] = useState(0)
   const { expertForBooking } = useAppContext()
   
   const [expert, setExpert] = useState(expertForBooking);
@@ -39,6 +43,15 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     }
     
   }, [expertForBooking, router]);
+
+  useEffect(() => {
+    if (expert) {
+      const halfHourRate = parseFloat((expert.hourlyRate / 2).toFixed(2))
+      setHalfHourlyRate(halfHourRate);
+      setTotal(halfHourRate + platformFee);
+    }
+  }
+  , [expert]);
 
   if(!expert) return null;
 
@@ -92,7 +105,10 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
             }`}
             onClick={() => setSelectedDate(date)}
           >
-            {dayName} {date.getDate()}
+            <div className="text-xs text-gray-400 mb-3">{dayName}</div>
+            <div className="font-medium">
+            {date.getDate()} {date.toLocaleString('default', { month: 'short' })} {date.getFullYear()}
+            </div>
           </button>
         );
       }
@@ -147,11 +163,13 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 flex items-center justify-between">
         <Link href="/" className="inline-flex items-center text-gray-400 hover:text-purple-400 mb-8">
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back to Experts
         </Link>
-
+        <SolanaWalletButton />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
             <Card className="bg-black/40 backdrop-blur-sm border border-purple-500/20 sticky top-8">
@@ -192,7 +210,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                       <Clock className="h-5 w-5 text-purple-400 mr-2" />
                       <span>Session Duration</span>
                     </div>
-                    <span className="font-medium">60 minutes</span>
+                    <span className="font-medium">30 minutes</span>
                   </div>
 
                   <div className="flex justify-between items-center p-3 rounded-lg border border-purple-500/20 bg-purple-900/10">
@@ -200,7 +218,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                       <CreditCard className="h-5 w-5 text-purple-400 mr-2" />
                       <span>Session Price</span>
                     </div>
-                    <span className="font-medium">{expert.hourlyRate} SOL/Hr</span>
+                    <span className="font-medium">{halfHourlyRate} SOL</span>
                   </div>
                 </div>
 
@@ -254,15 +272,15 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Session Fee</span>
-                    <span>{expert.hourlyRate} SOL</span>
+                    <span>{halfHourlyRate} SOL</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Platform Fee</span>
-                    <span>0.05 SOL</span>
+                    <span>{platformFee} SOL</span>
                   </div>
                   <div className="border-t border-purple-500/20 pt-3 flex justify-between font-bold">
                     <span>Total</span>
-                    <span>{(expert.hourlyRate + 0.05).toFixed(2)} SOL</span>
+                    <span>{total.toFixed(2)} SOL</span>
                   </div>
                 </div>
 
