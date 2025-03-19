@@ -13,6 +13,8 @@ import { ChevronLeft, Clock, CreditCard, Star } from "lucide-react"
 import Link from "next/link"
 import { useAppContext } from "@/context/AppContext";
 import { SolanaWalletButton } from "@/components/solana-wallet-button";
+import { toast } from "sonner";
+import { createBooking, createPayment } from "@/lib/helper";
 
 export default function BookingPage(props: { params: Promise<{ id: string }> }) {
   const ALLOWED_WINDOW_FOR_BOOKING = 14;
@@ -77,16 +79,53 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     setSuccess("")
 
     try {
-      console.log("Payment processing...", wallet, expert.user.walletAddress, halfHourlyRate, parseFloat(platformFee.toFixed(2)));
-      const signature = await processPayment(wallet, expert.user.walletAddress, halfHourlyRate, parseFloat(platformFee.toFixed(2)))
-      setSuccess(`Payment successful! Transaction signature: ${signature}`)
-      // Here you would typically update the booking status in your database
+      setIsProcessing(true);
+    
+      // Step 1: Create Booking and get bookingId
+      const bookingId = await toast.promise(
+        createBooking(
+          wallet.publicKey?.toString() || "",
+          expert.user.id,
+          "pending",
+          new Date(`${selectedDate?.toDateString()} ${selectedTime}`),
+          30,
+          "minutes",
+          halfHourlyRate
+        ),
+        {
+          loading: "Booking in progress...",
+          success: "Booking successful!",
+          error: "Booking failed",
+        }
+      );
+    
+      // Step 2: Process Payment and get Transaction Signature
+      const signature = await toast.promise(
+        processPayment(wallet, expert.user.walletAddress, halfHourlyRate, parseFloat(platformFee.toFixed(2))),
+        {
+          loading: "Payment in progress...",
+          success: "Payment successful!",
+          error: "Payment failed",
+        }
+      );
+    
+      // Step 3: Save Payment with Booking ID and Signature
+      await toast.promise(
+        createPayment(bookingId, signature, halfHourlyRate, wallet.publicKey?.toString(), expert.user.walletAddress),
+        {
+          loading: "Saving payment...",
+          success: "Payment saved successfully!",
+          error: "Failed to save payment",
+        }
+      );
+    
+      setSuccess(`Payment successful! Transaction signature: ${signature}`);
     } catch (err) {
-      setError(`Payment failed: ${err instanceof Error ? err.message : String(err)}`)
+      setError(`Payment failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+    
 
   const renderCalendar = () => {
     const today = new Date();
