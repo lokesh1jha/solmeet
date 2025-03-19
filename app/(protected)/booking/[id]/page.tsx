@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useRouter } from "next/navigation"
 import { processPayment } from "@/lib/payment-service"
@@ -14,7 +14,7 @@ import Link from "next/link"
 import { useAppContext } from "@/context/AppContext";
 
 export default function BookingPage(props: { params: Promise<{ id: string }> }) {
-  const ALLOWED_WINDOW_FOR_BOOKING = 7;
+  const ALLOWED_WINDOW_FOR_BOOKING = 14;
   const params = use(props.params);
   const wallet = useWallet()
   const router = useRouter()
@@ -25,17 +25,31 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const { expertForBooking } = useAppContext()
   
-  const expert = expertForBooking;
+  const [expert, setExpert] = useState(expertForBooking);
 
-  if (!expert) {
-    console.error("No expert selected for booking")
-    // router.push("/experts")
-    return
-  }
+  useEffect(() => {
+    if (!expertForBooking) {
+      const expertSelected = localStorage.getItem("expertForBooking");
+      if (expertSelected) {
+        setExpert(JSON.parse(expertSelected));
+      } else {
+        console.error("No expert selected for booking");
+        router.push("/experts");
+      }
+    }
+    
+  }, [expertForBooking, router]);
+
+  if(!expert) return null;
 
   const handlePayment = async () => {
     if (!wallet.connected) {
       setError("Please connect your wallet to make a payment.")
+      return
+    }
+
+    if (!selectedDate || !selectedTime) {
+      setError("Please select a date and time for the booking.")
       return
     }
 
@@ -56,16 +70,18 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
 
   const renderCalendar = () => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
     const days = [];
+    const addDays = (date: Date, days: number) => {
+      const result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result;
+    };
 
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = new Date(year, month, i);
-      const dayName = date.toLocaleString('default', { weekday: 'short' });
+    for (let i = 0; i <= ALLOWED_WINDOW_FOR_BOOKING; i++) {
+      const date = addDays(today, i);
+      const dayName = date.toLocaleString('default', { weekday: 'long' });
 
-      if (expert.availableWeekDays.includes(dayName) && i >= today.getDate() && i <= today.getDate() + ALLOWED_WINDOW_FOR_BOOKING) {
+      if (["Monday", "Tuesday", "Thursday"].includes(dayName)) {
         days.push(
           <button
             key={date.toDateString()}
@@ -76,33 +92,16 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
             }`}
             onClick={() => setSelectedDate(date)}
           >
-            {i}
+            {dayName} {date.getDate()}
           </button>
-        );
-      } else {
-        days.push(
-          <div key={date.toDateString()} className="text-center py-2 rounded-md text-sm text-gray-400 bg-gray-800">
-            {i}
-          </div>
         );
       }
     }
 
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    const emptyDays = Array.from({ length: firstDayOfMonth }, (_, index) => (
-      <div key={`empty-${index}`} className="text-center py-2 rounded-md text-sm text-gray-400 bg-gray-800"></div>
-    ));
-
     return (
       <div className="mb-6">
-        <h3 className="text-sm text-gray-400 mb-3">{today.toLocaleString('default', { month: 'long' })} {year}</h3>
-        <div className="grid grid-cols-7 gap-2">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div key={day} className="text-center text-xs text-gray-400 py-1">
-              {day}
-            </div>
-          ))}
-          {emptyDays}
+        <h3 className="text-sm text-gray-400 mb-3">Select a Date</h3>
+        <div className="grid grid-cols-3 gap-2">
           {days}
         </div>
       </div>
@@ -115,11 +114,9 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     const startTime = new Date(expert.startTimeSlot);
     const endTime = new Date(expert.endTimeSlot);
     const slots = [];
-    const availableWeekDays = expert.availableWeekDays;
 
-    for (let time = new Date(startTime); time < endTime; time.setHours(time.getHours() + 1)) {
+    for (let time = new Date(startTime); time < endTime; time.setMinutes(time.getMinutes() + 30)) {
       const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const dayName = selectedDate.toLocaleString('default', { weekday: 'short' });
 
       slots.push(
         <button
@@ -127,12 +124,9 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
           className={`flex items-center justify-center p-3 rounded-lg border text-sm ${
             selectedTime === timeString
               ? "border-blue-500/30 bg-blue-900/20 text-white"
-              : availableWeekDays.includes(dayName)
-              ? "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
-              : "border-gray-500/20 bg-gray-900/10 text-gray-500 cursor-not-allowed"
+              : "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
           }`}
-          onClick={() => availableWeekDays.includes(dayName) && setSelectedTime(timeString)}
-          disabled={!availableWeekDays.includes(dayName)}
+          onClick={() => setSelectedTime(timeString)}
         >
           <Clock className={`h-4 w-4 mr-2 ${selectedTime === timeString ? "text-blue-400" : "text-purple-400"}`} />
           <span>{timeString}</span>
@@ -149,7 +143,6 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
       </div>
     );
   };
-
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -300,7 +293,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
             </Card>
           </div>
         </div>
-      </div>
-    </div>
+          </div>
+        </div>
   )
 }

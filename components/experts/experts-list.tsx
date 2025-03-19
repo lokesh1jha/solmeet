@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,8 @@ import { Calendar, Clock, Star } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Expert } from "@/app/(public)/experts/page"
 import { useAppContext } from "@/context/AppContext"
+import { useRouter } from "next/navigation";
+
 
 interface ExpertsListProps {
   searchQuery: string
@@ -24,23 +26,24 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
   const { data: session } = useSession()
   const loggedeIn = !!session
   const [selectedExpert, setSelectedExpert] = useState<(typeof experts)[0] | null>(null)
-  const { setExpertForBooking, expertForBooking } = useAppContext()
+  const { setExpertForBooking } = useAppContext()
+  const router = useRouter()
 
 
   const handleBookingClick = (expert: (typeof experts)[0]) => {
     console.log("handleBookingClick")
     if (loggedeIn) {
       if (expert) {
-      console.log("logged in")
-
+        console.log("logged in")
         setExpertForBooking(expert)
-        console.log("setExpertForBooking", expertForBooking, expert )
-        // window.location.href = `/booking/${expert.id}`
+        setSelectedExpert(expert)
+        localStorage.setItem("expertForBooking", JSON.stringify(expert))
+        router.push(`/booking/${expert.id}`)
       }
     } else {
       // If not logged in, set the selected expert and redirect to login page
       setSelectedExpert(expert)
-      window.location.href = `/login`
+      router.push("/auth/login") 
     }
   }
 
