@@ -1,7 +1,8 @@
 import axios from "axios"
 
 export async function createBooking(userId: string, expertId: string, status: string, bookingDate: Date, bookingDuration: number, durationUnit: string = "minutes", priceAtBooking: number) {
-    const response = await axios.post("/api/booking", {
+    try {
+  const response = await axios.post("/api/booking", {
       data: {
         userId,
         expertId,
@@ -12,8 +13,12 @@ export async function createBooking(userId: string, expertId: string, status: st
         priceAtBooking,
       },
     })
-  
     return response.data
+    } catch (error) {
+      console.error("Booking creation error:", error)
+      return { error: "Internal server error" }
+    }
+  
   }
   
   export async function createPayment(bookingId: string, amount: number, fromWalletAddress: string, toWalletAddress: string, transactionId: string) {

@@ -43,7 +43,7 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
     } else {
       // If not logged in, set the selected expert and redirect to login page
       setSelectedExpert(expert)
-      router.push("/auth/login") 
+      router.push("/login") 
     }
   }
 
