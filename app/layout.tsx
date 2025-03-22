@@ -1,9 +1,8 @@
 import type React from "react";
 import "./globals.css";
 import type { Metadata } from "next";
-import { Toaster } from "sonner"; // Import Sonner
-import { SolanaWalletProvider } from "@/components/solana-wallet-provider";
-import AuthProvider from "@/context/AuthProvider";
+import { Toaster } from "sonner";
+import Providers from "@/context/Provider";
 
 export const metadata: Metadata = {
   title: "SolMeet - Connect with Solana Experts",
@@ -19,12 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <SolanaWalletProvider>
-            <Toaster position="bottom-right" richColors /> 
-            {children}
-          </SolanaWalletProvider>
-        </AuthProvider>
+        <Providers>
+          <Toaster position="bottom-right" richColors />
+          {children}
+        </Providers>
       </body>
     </html>
   );

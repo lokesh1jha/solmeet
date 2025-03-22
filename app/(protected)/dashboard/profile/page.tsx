@@ -74,15 +74,25 @@ export default function ProfilePage() {
           const startTime = convertToUTC(startTimeSlot);
           const endTime = convertToUTC(endTimeSlot);
 
-          if (startTime && endTime && expertProfile) {
-            expertProfile.startTimeSlot = startTime;
-            expertProfile.endTimeSlot = endTime;
-            expertProfile.availableWeekDays = availableWeekDays;
-            expertProfile.tags = tags;
-            setSelectedTimeSlots([startTime.toLocaleString().split(",")[1].trim(), endTime.toLocaleString().split(",")[1].trim()])
-          }
+          if (startTime && endTime) {
+            const updatedExpertProfile = {
+              ...expertProfile!,
+              startTimeSlot: startTime,
+              endTimeSlot: endTime,
+              availableWeekDays: availableWeekDays,
+              tags: tags,
+            };
+            setExpertProfile(updatedExpertProfile);
+            setSelectedTimeSlots([startTime.toLocaleString().split(",")[1].trim(), endTime.toLocaleString().split(",")[1].trim()]);
 
-          await axios.post("/api/profile", { data: userInfo });
+            const updatedUserInfo = {
+              ...userInfo!,
+              expertProfile: updatedExpertProfile,
+            };
+            setUserInfo(updatedUserInfo);
+
+            await axios.post("/api/profile", { data: updatedUserInfo });
+          }
           setEditing(false);
           resolve("Profile saved successfully! 🎉");
         } catch (error) {
@@ -180,7 +190,7 @@ export default function ProfilePage() {
                             <p className="ml-2">SOL</p>
                           </div>
                         ) : (
-                          <p className="break-all">{expertProfile?.hourlyRate ? `$${expertProfile.hourlyRate}/hr SOL` : "Not Set Yet"}</p>
+                          <p className="break-all">{expertProfile?.hourlyRate ? `${expertProfile.hourlyRate} SOL/hr` : "Not Set Yet"}</p>
                         )}
                       </div>
                     </div>
