@@ -117,11 +117,11 @@ export function BookingPreview() {
                     </div>
                     <div className="flex justify-between mb-4">
                       <span className="text-gray-400">Platform Fee</span>
-                      <span>0.05 SOL</span>
+                      <span>0.01 SOL</span>
                     </div>
                     <div className="flex justify-between font-bold">
                       <span>Total</span>
-                      <span>0.55 SOL</span>
+                      <span>0.51 SOL</span>
                     </div>
                   </div>
 
