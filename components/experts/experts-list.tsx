@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, Star } from "lucide-react"
+import { Calendar, Clock, Star, Loader2 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Expert } from "@/app/(public)/experts/page"
 import { useAppContext } from "@/context/AppContext"
@@ -26,24 +26,30 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
   const { data: session } = useSession()
   const loggedeIn = !!session
   const [selectedExpert, setSelectedExpert] = useState<(typeof experts)[0] | null>(null)
+  const [bookingLoading, setBookingLoading] = useState<string | null>(null)
   const { setExpertForBooking } = useAppContext()
   const router = useRouter()
 
 
-  const handleBookingClick = (expert: (typeof experts)[0]) => {
-    console.log("handleBookingClick")
-    if (loggedeIn) {
-      if (expert) {
-        console.log("logged in")
-        setExpertForBooking(expert)
+  const handleBookingClick = async (expert: (typeof experts)[0]) => {
+    setBookingLoading(expert.id)
+    
+    try {
+      if (loggedeIn) {
+        if (expert) {
+          setExpertForBooking(expert)
+          setSelectedExpert(expert)
+          localStorage.setItem("expertForBooking", JSON.stringify(expert))
+          router.push(`/booking/${expert.id}`)
+        }
+      } else {
+        // If not logged in, set the selected expert and redirect to login page
         setSelectedExpert(expert)
-        localStorage.setItem("expertForBooking", JSON.stringify(expert))
-        router.push(`/booking/${expert.id}`)
+        router.push("/login") 
       }
-    } else {
-      // If not logged in, set the selected expert and redirect to login page
-      setSelectedExpert(expert)
-      router.push("/login") 
+    } finally {
+      // Small delay to show loading state
+      setTimeout(() => setBookingLoading(null), 500)
     }
   }
 
@@ -112,8 +118,18 @@ export const ExpertsList: React.FC<ExpertsListProps> = ({ searchQuery, filters, 
                 <Button
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-none"
                   onClick={() => handleBookingClick(expert)}
+                  disabled={bookingLoading === expert.id}
                 >
-                  {loggedeIn ? "Book Session" : "Login to Book"}
+                  {bookingLoading === expert.id ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : loggedeIn ? (
+                    "Book Session"
+                  ) : (
+                    "Login to Book"
+                  )}
                 </Button>
               </div>
             </CardContent>

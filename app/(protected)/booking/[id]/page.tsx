@@ -3,13 +3,14 @@
 import { useState, use, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { processPayment } from "@/lib/payment-service"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, Clock, CreditCard, Star } from "lucide-react"
+import { ChevronLeft, Clock, CreditCard, Star, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useAppContext } from "@/context/AppContext";
 import { SolanaWalletButton } from "@/components/solana-wallet-button";
@@ -22,6 +23,7 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   const params = use(props.params);
   const wallet = useWallet()
   const router = useRouter()
+  const { data: session } = useSession()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -72,7 +74,13 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   if (!expert) return null;
 
   const createNewBooking = async () => {
-    if(connectedUserWalletAddress == "") {
+    // Check if user is authenticated
+    if (!session?.user?.id) {
+      setError("Please log in to create a booking.")
+      return null
+    }
+    
+    if (!wallet.connected) {
       setError("Please connect your wallet to make a payment.")
       return null
     }
@@ -85,8 +93,10 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     try {
       const bookingDateTime = formatDateTime(selectedDate, selectedTime!);
       
+      console.log("Creating booking with user ID:", session.user.id);
+      
       let response: any = await createBooking(
-        connectedUserWalletAddress,
+        session.user.id, // Use actual user ID from session instead of wallet address
         expert.user.id,
         "pending",
         bookingDateTime,
@@ -96,7 +106,8 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
       )
 
       if (response.error) {
-        toast.error("Failed to create booking")
+        console.error("Booking creation failed:", response.error)
+        toast.error(`Failed to create booking: ${response.error}`)
         return null
       }
       
@@ -392,9 +403,18 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                   <Button
                     className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-none h-12"
                     onClick={handlePayment}
-                    disabled={isProcessing || !wallet.connected}
+                    disabled={isProcessing || !wallet.connected || !selectedDate || !selectedTime}
                   >
-                    {isProcessing ? "Processing..." : wallet.connected ? "Confirm and Pay" : "Connect Wallet to Pay"}
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : wallet.connected ? (
+                      "Confirm and Pay"
+                    ) : (
+                      "Connect Wallet to Pay"
+                    )}
                   </Button>
 
                   {error && (
