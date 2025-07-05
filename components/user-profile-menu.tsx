@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -10,11 +11,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, Settings, History, LogOut, Wallet } from "lucide-react"
+import { User, Settings, History, LogOut, Wallet, Loader2 } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 
 export function UserProfileMenu() {
   const user = useSession().data?.user
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await signOut({ callbackUrl: "/" })
+    } catch (error) {
+      console.error("Logout error:", error)
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <DropdownMenu>
@@ -50,9 +62,18 @@ export function UserProfileMenu() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => signOut()}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+            <DropdownMenuItem onSelect={handleLogout} disabled={isLoggingOut}>
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Logging out...</span>
+                </>
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </>
+              )}
             </DropdownMenuItem>
           </>
         ) : (

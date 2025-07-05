@@ -403,9 +403,18 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                   <Button
                     className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-none h-12"
                     onClick={handlePayment}
-                    disabled={isProcessing || !wallet.connected}
+                    disabled={isProcessing || !wallet.connected || !selectedDate || !selectedTime}
                   >
-                    {isProcessing ? "Processing..." : wallet.connected ? "Confirm and Pay" : "Connect Wallet to Pay"}
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : wallet.connected ? (
+                      "Confirm and Pay"
+                    ) : (
+                      "Connect Wallet to Pay"
+                    )}
                   </Button>
 
                   {error && (
