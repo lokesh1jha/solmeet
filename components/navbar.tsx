@@ -51,7 +51,30 @@ export function Navbar() {
 
             <div className="flex items-center space-x-4">
             <SolanaWalletButton />
-            {user ? <UserProfileMenu /> : null}
+            {user ? (
+              <>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="hidden md:flex border-purple-500/30 hover:bg-purple-900/20 hover:border-purple-400/50"
+                >
+                  <Link href="/dashboard">
+                    Dashboard
+                  </Link>
+                </Button>
+                <UserProfileMenu />
+              </>
+            ) : (
+              <Button
+                asChild
+                variant="outline"
+                className="border-purple-500/30 hover:bg-purple-900/20 hover:border-purple-400/50"
+              >
+                <Link href="/login">
+                  Login
+                </Link>
+              </Button>
+            )}
 
             <Button
               variant="ghost"

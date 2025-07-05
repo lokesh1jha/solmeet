@@ -1,8 +1,12 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import type { WalletContextState } from "@solana/wallet-adapter-react"
 
-const SOLMEET_FEE_PERCENTAGE = parseFloat(process.env.NEXT_PUBLIC_SOLMEET_FEE_PERCENTAGE || "0.1")
+const SOLMEET_FEE_PERCENTAGE = parseFloat(process.env.NEXT_PUBLIC_SOLMEET_FEE_PERCENTAGE || "0.05")
 const SOLMEET_WALLET_ADDRESS = process.env.NEXT_PUBLIC_SOLMEET_WALLET_ADDRESS || ""
+
+if (!SOLMEET_WALLET_ADDRESS) {
+  console.warn("NEXT_PUBLIC_SOLMEET_WALLET_ADDRESS is not configured")
+}
 
 export async function processPayment(wallet: WalletContextState, expertWalletAddress: string, amountInSOL: number, platformFee: number) {
   if (!wallet.publicKey || !wallet.signTransaction) {
