@@ -15,6 +15,7 @@ import { useAppContext } from "@/context/AppContext";
 import { SolanaWalletButton } from "@/components/solana-wallet-button";
 import { toast } from "sonner";
 import { createBooking, createPayment } from "@/lib/helper";
+import { generateTimeSlots, formatDateTime, addDays } from "@/lib/dateUtils";
 
 export default function BookingPage(props: { params: Promise<{ id: string }> }) {
   const ALLOWED_WINDOW_FOR_BOOKING = 14;
@@ -33,6 +34,8 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   const { expertForBooking } = useAppContext()
   const [expert, setExpert] = useState(expertForBooking);
   const [connectedUserWalletAddress, setConnectedUserWalletAddress] = useState("")
+  const [discussionTopic, setDiscussionTopic] = useState("")
+  const [experienceLevel, setExperienceLevel] = useState("Beginner")
 
   useEffect(() => {
     if (!expertForBooking) {
@@ -71,25 +74,41 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
   const createNewBooking = async () => {
     if(connectedUserWalletAddress == "") {
       setError("Please connect your wallet to make a payment.")
-      return
+      return null
     }
-    let response: any = await createBooking(
-      connectedUserWalletAddress,
-      expert.user.id,
-      "pending",
-      new Date(`${selectedDate?.toDateString()} ${selectedTime}`),
-      30,
-      "minutes",
-      halfHourlyRate,
-    )
+    
+    if (!selectedDate || !selectedTime) {
+      setError("Please select a date and time for the booking.")
+      return null
+    }
+    
+    try {
+      const bookingDateTime = formatDateTime(selectedDate, selectedTime!);
+      
+      let response: any = await createBooking(
+        connectedUserWalletAddress,
+        expert.user.id,
+        "pending",
+        bookingDateTime,
+        30,
+        "minutes",
+        halfHourlyRate,
+      )
 
-    if (response.error) {
+      if (response.error) {
+        toast.error("Failed to create booking")
+        return null
+      }
+      
+      console.log("Booking created successfully", response)
+      const newBookingId = response.bookingId || response.data?.id
+      setBookingId(newBookingId)
+      return newBookingId
+    } catch (error) {
+      console.error("Error creating booking:", error)
       toast.error("Failed to create booking")
-      return
+      return null
     }
-    console.log("Booking created successfully", response)
-    setBookingId(response.bookingId)
-    return response.bookingId
   }
 
   const handlePayment = async () => {
@@ -116,19 +135,19 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
       setIsProcessing(true);
 
       // Step 1: Create Booking and get bookingId
-      const newbookingId = await createNewBooking()
-      if(!newbookingId || !bookingId) {
+      const newBookingId = await createNewBooking()
+      if(!newBookingId) {
         setError("Failed to create booking")
+        setIsProcessing(false)
         return
       }
 
       // Step 2: Process Payment and get Transaction Signature
       const signature = await processPayment(wallet, expert.user.walletAddress, halfHourlyRate, platformFee)
 
-
       // Step 3: Save Payment with Booking ID and Signature 
-      toast.promise(
-        createPayment(bookingId, halfHourlyRate, connectedUserWalletAddress, expert.user.walletAddress, signature),
+      await toast.promise(
+        createPayment(newBookingId, halfHourlyRate, connectedUserWalletAddress, expert.user.walletAddress, signature),
         {
           loading: "Saving payment...",
           success: "Payment saved successfully!",
@@ -144,32 +163,29 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     }
   }
 
-    const renderCalendar = () => {
+  const renderCalendar = () => {
       const today = new Date();
       const days = [];
-      const addDays = (date: Date, days: number) => {
-        const result = new Date(date);
-        result.setDate(result.getDate() + days);
-        return result;
-      };
 
       for (let i = 0; i <= ALLOWED_WINDOW_FOR_BOOKING; i++) {
         const date = addDays(today, i);
         const dayName = date.toLocaleString('default', { weekday: 'long' });
 
-        if (["Monday", "Tuesday", "Thursday"].includes(dayName)) {
+        // Check if this day is in the expert's available days
+        if (expert?.availableWeekDays.includes(dayName)) {
           days.push(
             <button
               key={date.toDateString()}
-              className={`text-center py-2 rounded-md text-sm ${selectedDate?.toDateString() === date.toDateString()
-                ? "bg-blue-900/30 border border-blue-500/30 text-white"
-                : "hover:bg-purple-900/20 text-gray-300"
-                }`}
+              className={`text-center py-2 rounded-md text-sm transition-colors ${
+                selectedDate?.toDateString() === date.toDateString()
+                  ? "bg-blue-900/30 border border-blue-500/30 text-white"
+                  : "hover:bg-purple-900/20 text-gray-300 border border-transparent"
+              }`}
               onClick={() => setSelectedDate(date)}
             >
-              <div className="text-xs text-gray-400 mb-3">{dayName}</div>
+              <div className="text-xs text-gray-400 mb-1">{dayName}</div>
               <div className="font-medium">
-                {date.getDate()} {date.toLocaleString('default', { month: 'short' })} {date.getFullYear()}
+                {date.getDate()} {date.toLocaleString('default', { month: 'short' })}
               </div>
             </button>
           );
@@ -187,27 +203,20 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
     };
 
     const renderTimeSlots = () => {
-      if (!selectedDate) return null;
+      if (!selectedDate || !expert) return null;
 
       const startTime = new Date(expert.startTimeSlot);
       const endTime = new Date(expert.endTimeSlot);
-      const slots = [];
-
-      for (let time = new Date(startTime); time < endTime; time.setMinutes(time.getMinutes() + 30)) {
-        const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        slots.push(
-          <button
-            key={timeString}
-            className={`flex items-center justify-center p-3 rounded-lg border text-sm ${selectedTime === timeString
-              ? "border-blue-500/30 bg-blue-900/20 text-white"
-              : "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
-              }`}
-            onClick={() => setSelectedTime(timeString)}
-          >
-            <Clock className={`h-4 w-4 mr-2 ${selectedTime === timeString ? "text-blue-400" : "text-purple-400"}`} />
-            <span>{timeString}</span>
-          </button>
+      
+      // Generate time slots using utility function
+      const timeSlots = generateTimeSlots(selectedDate, startTime, endTime, 30);
+      
+      if (timeSlots.length === 0) {
+        return (
+          <div>
+            <h3 className="text-sm text-gray-400 mb-3">Available Time Slots</h3>
+            <p className="text-gray-500 text-sm">No time slots available for this date.</p>
+          </div>
         );
       }
 
@@ -215,7 +224,36 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
         <div>
           <h3 className="text-sm text-gray-400 mb-3">Available Time Slots</h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {slots}
+            {timeSlots.map((timeString) => {
+              // Check if this time slot is in the past for today
+              const now = new Date();
+              const slotDateTime = formatDateTime(selectedDate, timeString);
+              const isPastSlot = slotDateTime <= now;
+              
+              return (
+                <button
+                  key={timeString}
+                  disabled={isPastSlot}
+                  className={`flex items-center justify-center p-3 rounded-lg border text-sm transition-colors ${
+                    isPastSlot
+                      ? "border-gray-600 bg-gray-800/20 text-gray-600 cursor-not-allowed"
+                      : selectedTime === timeString
+                      ? "border-blue-500/30 bg-blue-900/20 text-white"
+                      : "border-purple-500/20 bg-purple-900/10 hover:bg-purple-900/20 text-gray-300"
+                  }`}
+                  onClick={() => !isPastSlot && setSelectedTime(timeString)}
+                >
+                  <Clock className={`h-4 w-4 mr-2 ${
+                    isPastSlot
+                      ? "text-gray-600"
+                      : selectedTime === timeString
+                      ? "text-blue-400"
+                      : "text-purple-400"
+                  }`} />
+                  <span>{timeString}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       );
@@ -309,6 +347,8 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
                     <div>
                       <label className="block text-sm text-gray-400 mb-2">What would you like to discuss?</label>
                       <textarea
+                        value={discussionTopic}
+                        onChange={(e) => setDiscussionTopic(e.target.value)}
                         className="w-full h-32 rounded-lg border border-purple-500/20 bg-black/60 text-white p-3 focus:border-purple-400 focus:ring focus:ring-purple-400/20 focus:outline-none"
                         placeholder="Describe what you'd like to learn or discuss in this session..."
                       />
@@ -316,10 +356,14 @@ export default function BookingPage(props: { params: Promise<{ id: string }> }) 
 
                     <div>
                       <label className="block text-sm text-gray-400 mb-2">Your experience level</label>
-                      <select className="w-full rounded-lg border border-purple-500/20 bg-black/60 text-white p-3 focus:border-purple-400 focus:ring focus:ring-purple-400/20 focus:outline-none">
-                        <option>Beginner</option>
-                        <option>Intermediate</option>
-                        <option>Advanced</option>
+                      <select 
+                        value={experienceLevel}
+                        onChange={(e) => setExperienceLevel(e.target.value)}
+                        className="w-full rounded-lg border border-purple-500/20 bg-black/60 text-white p-3 focus:border-purple-400 focus:ring focus:ring-purple-400/20 focus:outline-none"
+                      >
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
                       </select>
                     </div>
                   </div>
